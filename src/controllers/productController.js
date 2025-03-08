@@ -70,6 +70,41 @@ const productController = {
       res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
+
+  async exportProductViews(req, res) {
+    try {
+      const products = await productModel.getAllProducts();
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Product Views');
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'Name', key: 'name', width: 30 },
+        { header: 'Price', key: 'price', width: 15 },
+        { header: 'Views', key: 'views_count', width: 15 },
+      ];
+
+      products.forEach(product => {
+        worksheet.addRow({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          views_count: product.views_count,
+        });
+      });
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader('Content-Disposition', 'attachment; filename=product_views.xlsx');
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+  },
 };
 
 module.exports = productController;

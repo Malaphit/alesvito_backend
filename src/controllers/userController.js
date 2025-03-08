@@ -23,6 +23,34 @@ const userController = {
     }
   },
 
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const user = await userModel.getUserByEmail(email);
+      if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      await userModel.updateResetToken(user.id, token);
+      await notificationModel.sendResetPasswordEmail(email, token);
+
+      res.json({ message: 'Письмо для сброса пароля отправлено' });
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+  },
+
+  async resetPassword(req, res) {
+    try {
+      const { token } = req.query;
+      const { newPassword } = req.body;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      await userModel.updatePassword(decoded.id, newPassword);
+      res.json({ message: 'Пароль успешно сброшен' });
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+  },
+
   async login(req, res) {
     try {
       const { email, password } = req.body;

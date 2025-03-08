@@ -27,6 +27,8 @@ const orderController = {
       const { items, deliveryAddress, bonusPointsUsed = 0 } = req.body;
       const userId = req.user.id;
       const order = await orderModel.createOrder(userId, items, deliveryAddress, bonusPointsUsed);
+      const user = await userModel.getUserById(userId);
+      await notificationModel.sendOrderConfirmation(user.email, order.id);
       res.status(201).json(order);
     } catch (error) {
       res.status(500).json({ message: 'Ошибка сервера', error: error.message });
