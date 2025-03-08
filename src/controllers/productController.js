@@ -6,8 +6,7 @@ const productController = {
       const products = await productModel.getAllProducts();
       res.json(products);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Ошибка сервера' });
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
 
@@ -27,7 +26,6 @@ const productController = {
       );
       res.status(201).json(product);
     } catch (error) {
-      console.error('Ошибка в контроллере:', error);
       res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
@@ -48,8 +46,7 @@ const productController = {
       if (!product) return res.status(404).json({ message: 'Товар не найден' });
       res.json(product);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Ошибка сервера' });
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
 
@@ -60,8 +57,17 @@ const productController = {
       if (!product) return res.status(404).json({ message: 'Товар не найден' });
       res.json({ message: 'Товар удален' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Ошибка сервера' });
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+  },
+
+  async incrementViews(req, res) {
+    try {
+      const { productId } = req.params;
+      const views = await productModel.incrementViews(productId);
+      res.json({ views_count: views });
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
 };

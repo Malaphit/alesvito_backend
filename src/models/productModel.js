@@ -102,6 +102,12 @@ const productModel = {
     }
   },
 
+  async incrementViews(productId) {
+    const query = 'UPDATE products SET views_count = views_count + 1 WHERE id = $1 RETURNING views_count';
+    const result = await pool.query(query, [productId]);
+    return result.rows[0].views_count;
+  },
+
   async deleteProduct(id) {
     const query = 'DELETE FROM products WHERE id = $1 RETURNING *';
     const result = await pool.query(query, [id]);
