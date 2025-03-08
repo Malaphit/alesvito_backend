@@ -1,11 +1,12 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const cors = require('cors'); // Добавляем cors
+const cors = require('cors'); 
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const sizeRoutes = require('./routes/sizeRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/sizes', sizeRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.send('Добро пожаловать в AlessandroVitorio API!');
