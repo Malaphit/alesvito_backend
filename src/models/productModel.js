@@ -8,6 +8,22 @@ const productModel = {
       LEFT JOIN categories c ON p.category_id = c.id
     `;
     const result = await pool.query(query);
+    const products = result.rows;
+  
+    for (let product of products) {
+      product.sizes = await this.getProductSizes(product.id);
+    }
+    return products;
+  },
+
+  async getProductSizes(productId) {
+    const query = `
+      SELECT s.id, s.size
+      FROM product_sizes ps
+      JOIN sizes s ON ps.size_id = s.id
+      WHERE ps.product_id = $1
+    `;
+    const result = await pool.query(query, [productId]);
     return result.rows;
   },
 
