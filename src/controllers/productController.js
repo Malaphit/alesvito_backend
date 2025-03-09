@@ -1,4 +1,5 @@
 const productModel = require('../models/productModel');
+const { Workbook } = require('exceljs');
 
 const productController = {
   async getProducts(req, res) {
@@ -34,6 +35,15 @@ const productController = {
     try {
       const { id } = req.params;
       const { categoryId, name, description, price, imageUrls, sizeIds } = req.body;
+  
+      // Валидация
+      if (!Array.isArray(imageUrls)) {
+        return res.status(400).json({ message: 'imageUrls должен быть массивом' });
+      }
+      if (sizeIds && !Array.isArray(sizeIds)) {
+        return res.status(400).json({ message: 'sizeIds должен быть массивом' });
+      }
+  
       const product = await productModel.updateProduct(
         id,
         categoryId,
@@ -46,6 +56,7 @@ const productController = {
       if (!product) return res.status(404).json({ message: 'Товар не найден' });
       res.json(product);
     } catch (error) {
+      console.error('Update error:', error); // Для отладки
       res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
@@ -71,40 +82,46 @@ const productController = {
     }
   },
 
-  async exportProductViews(req, res) {
-    try {
-      const products = await productModel.getAllProducts();
-      const workbook = new Workbook();
-      const worksheet = workbook.addWorksheet('Product Views');
+  
 
-      worksheet.columns = [
-        { header: 'ID', key: 'id', width: 10 },
-        { header: 'Name', key: 'name', width: 30 },
-        { header: 'Price', key: 'price', width: 15 },
-        { header: 'Views', key: 'views_count', width: 15 },
-      ];
+async exportProductViews(req, res) {
+  try {
+    const products = await productModel.getAllProducts();
+    console.log('Products fetched:', products.length); // Отладка
 
-      products.forEach(product => {
-        worksheet.addRow({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          views_count: product.views_count,
-        });
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet('Product Views');
+
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 30 },
+      { header: 'Price', key: 'price', width: 15 },
+      { header: 'Views', key: 'views_count', width: 15 },
+      { header: 'Orders', key: 'order_count', width: 15 },
+    ];
+
+    products.forEach(product => {
+      worksheet.addRow({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        views_count: product.views_count || 0, 
+        order_count: product.order_count || 0,
       });
+    });
 
-      res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      );
-      res.setHeader('Content-Disposition', 'attachment; filename=product_views.xlsx');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=product_views.xlsx');
 
-      await workbook.xlsx.write(res);
-      res.end();
-    } catch (error) {
-      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-    }
-  },
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export error:', error); 
+    res.status(500).json({ message: 'Ошибка при экспорте', error: error.message });
+  }
+},
 };
 
 module.exports = productController;

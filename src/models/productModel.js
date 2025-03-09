@@ -1,6 +1,16 @@
 const pool = require('../config/db');
 
 const productModel = {
+  async getProductOrderCount(productId) {
+    const query = `
+      SELECT COUNT(*) AS order_count
+      FROM order_items
+      WHERE product_id = $1
+    `;
+    const result = await pool.query(query, [productId]);
+    return parseInt(result.rows[0].order_count);
+  },
+  
   async getAllProducts() {
     const query = `
       SELECT p.id, p.name, p.price, p.image_urls, p.views_count, c.name AS category_name
@@ -12,6 +22,7 @@ const productModel = {
   
     for (let product of products) {
       product.sizes = await this.getProductSizes(product.id);
+      product.order_count = await this.getProductOrderCount(product.id); 
     }
     return products;
   },
@@ -71,28 +82,33 @@ const productModel = {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-
-      const productQuery = `
+  
+      // Проверка и преобразование imageUrls
+      const validImageUrls = Array.isArray(imageUrls) && imageUrls.length > 0 ? imageUrls : [];
+  
+      const updateQuery = `
         UPDATE products
-        SET category_id = $1, name = $2, description = $3, price = $4, image_urls = $5
+        SET category_id = $1, name = $2, description = $3, price = $4, image_urls = $5::jsonb
         WHERE id = $6
         RETURNING *
       `;
-      const productValues = [categoryId, name, description, price, imageUrls, id];
-      const productResult = await client.query(productQuery, productValues);
-      const product = productResult.rows[0];
-
-      // Обновляем размеры
+      const updateValues = [categoryId, name, description, price, JSON.stringify(validImageUrls), id];
+      const result = await client.query(updateQuery, updateValues);
+      const product = result.rows[0];
+  
+      if (!product) throw new Error('Товар не найден');
+  
       await client.query('DELETE FROM product_sizes WHERE product_id = $1', [id]);
-      if (sizeIds && sizeIds.length > 0) {
+      if (sizeIds && Array.isArray(sizeIds) && sizeIds.length > 0) {
         const sizeQuery = `
           INSERT INTO product_sizes (product_id, size_id)
-          VALUES ${sizeIds.map((_, i) => `($1, $${i + 2})`).join(', ')}
+          VALUES ($1, UNNEST($2::int[]))
         `;
-        await client.query(sizeQuery, [id, ...sizeIds]);
+        await client.query(sizeQuery, [id, sizeIds]);
       }
-
+  
       await client.query('COMMIT');
+      product.sizes = await this.getProductSizes(id);
       return product;
     } catch (error) {
       await client.query('ROLLBACK');
