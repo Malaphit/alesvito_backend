@@ -58,6 +58,12 @@ const userModel = {
     return result.rows[0] || null;
   },
 
+  async getUserById(userId) {
+    const query = 'SELECT * FROM users WHERE id = $1';
+    const result = await pool.query(query, [userId]);
+    return result.rows[0] || null;
+  },
+
   async updateResetToken(userId, token) {
     const query = 'UPDATE users SET reset_token = $1 WHERE id = $2';
     await pool.query(query, [token, userId]);
@@ -65,7 +71,7 @@ const userModel = {
 
   async updatePassword(userId, newPassword) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const query = 'UPDATE users SET password = $1 WHERE id = $2';
+    const query = 'UPDATE users SET password_hash = $1 WHERE id = $2';
     await pool.query(query, [hashedPassword, userId]);
   },
 
