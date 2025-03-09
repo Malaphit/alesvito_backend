@@ -11,6 +11,28 @@ const productModel = {
     return parseInt(result.rows[0].order_count);
   },
   
+  async searchProducts(searchQuery) {
+    const query = `
+      SELECT p.*, c.name as category_name 
+      FROM products p 
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.name ILIKE $1 OR c.name ILIKE $1
+    `;
+    const result = await pool.query(query, [`%${searchQuery}%`]);
+    return result.rows;
+  },
+
+  async getProductById(id) {
+    const query = `
+      SELECT p.*, c.name as category_name 
+      FROM products p 
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.id = $1
+    `;
+    const result = await pool.query(query, [id]);
+    return result.rows[0] || null;
+  },
+
   async getAllProducts() {
     const query = `
       SELECT p.id, p.name, p.price, p.image_urls, p.views_count, c.name AS category_name
