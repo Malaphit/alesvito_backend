@@ -9,10 +9,15 @@ const userController = {
       const { email, password } = req.body;
       const user = await userModel.getUserByEmail(email);
       if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
-
-      const isMatch = await bcrypt.compare(password, user.password);
+  
+      // Проверяем, что password из формы и user.password_hash существуют
+      if (!password || !user.password_hash) {
+        return res.status(400).json({ message: 'Email или пароль не указаны' });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password_hash); // Исправлено
       if (!isMatch) return res.status(401).json({ message: 'Неверный пароль' });
-
+  
       const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
       res.json({ token, role: user.role });
     } catch (error) {
