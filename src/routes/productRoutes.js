@@ -12,5 +12,6 @@ router.put('/:id', authMiddleware(['admin']), productController.updateProduct);
 router.delete('/:id', authMiddleware(['admin']), productController.deleteProduct);
 router.put('/views/:productId', productController.incrementViews);
 router.get('/export/views', authMiddleware(['admin']), productController.exportProductViews);
+router.get('/products/:id', productController.getProductById);
 
 module.exports = router;
