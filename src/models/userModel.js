@@ -52,6 +52,23 @@ const userModel = {
     }
   },
 
+  async getUserByEmail(email) {
+    const query = 'SELECT * FROM users WHERE email = $1';
+    const result = await pool.query(query, [email]);
+    return result.rows[0] || null;
+  },
+
+  async updateResetToken(userId, token) {
+    const query = 'UPDATE users SET reset_token = $1 WHERE id = $2';
+    await pool.query(query, [token, userId]);
+  },
+
+  async updatePassword(userId, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const query = 'UPDATE users SET password = $1 WHERE id = $2';
+    await pool.query(query, [hashedPassword, userId]);
+  },
+
   async findUserByEmail(email) {
     const query = 'SELECT * FROM users WHERE email = $1';
     const result = await pool.query(query, [email]);
