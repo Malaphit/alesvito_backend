@@ -10,6 +10,17 @@ const categoryController = {
     }
   },
 
+  async getCategoryById(req, res) {
+    try {
+      const { id } = req.params;
+      const category = await categoryModel.getCategoryById(id);
+      if (!category) return res.status(404).json({ message: 'Категория не найдена' });
+      res.json(category);
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера' });
+    }
+  },
+
   async createCategory(req, res) {
     try {
       const { name, description, weight } = req.body;

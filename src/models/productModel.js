@@ -21,7 +21,7 @@ const productModel = {
     const result = await pool.query(query, [`%${searchQuery}%`]);
     return result.rows;
   },
-
+  
   async getProductById(id) {
     const query = `
       SELECT p.*, c.name as category_name 
@@ -29,8 +29,15 @@ const productModel = {
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.id = $1
     `;
+    console.log('Executing query for id:', id);
     const result = await pool.query(query, [id]);
-    return result.rows[0] || null;
+    console.log('Query result:', result.rows);
+    let product = result.rows[0] || null;
+    if (product) {
+      product.sizes = await this.getProductSizes(product.id);
+      product.order_count = await this.getProductOrderCount(product.id);
+    }
+    return product;
   },
 
   async getAllProducts() {

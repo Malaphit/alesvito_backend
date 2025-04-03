@@ -7,6 +7,11 @@ const categoryModel = {
     return result.rows;
   },
 
+  async getCategoryById(id) {
+    const result = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  },
+
   async createCategory(name, description, weight) {
     const query = `
       INSERT INTO categories (name, description, weight)

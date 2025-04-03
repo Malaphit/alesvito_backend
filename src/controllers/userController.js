@@ -10,12 +10,11 @@ const userController = {
       const user = await userModel.getUserByEmail(email);
       if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
   
-      // Проверяем, что password из формы и user.password_hash существуют
       if (!password || !user.password_hash) {
         return res.status(400).json({ message: 'Email или пароль не указаны' });
       }
   
-      const isMatch = await bcrypt.compare(password, user.password_hash); // Исправлено
+      const isMatch = await bcrypt.compare(password, user.password_hash); 
       if (!isMatch) return res.status(401).json({ message: 'Неверный пароль' });
   
       const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -54,7 +53,7 @@ const userController = {
 
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       await userModel.updateResetToken(user.id, token);
-      await notificationModel.sendResetPasswordEmail(email, token); // Пока оставим, исправим ниже
+      await notificationModel.sendResetPasswordEmail(email, token); 
 
       res.json({ message: 'Письмо для сброса пароля отправлено' });
     } catch (error) {
@@ -73,6 +72,24 @@ const userController = {
       res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
   },
+
+  async getCurrentUser(req, res) {
+    try {
+      const userId = req.user.id; 
+      const user = await userModel.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Пользователь не найден' });
+      }
+      res.json({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'user', 
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+  },
+  
 };
 
 module.exports = userController;

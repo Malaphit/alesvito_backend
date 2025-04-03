@@ -48,7 +48,6 @@ const productController = {
       const { id } = req.params;
       const { categoryId, name, description, price, imageUrls, sizeIds } = req.body;
   
-      // Валидация
       if (!Array.isArray(imageUrls)) {
         return res.status(400).json({ message: 'imageUrls должен быть массивом' });
       }
