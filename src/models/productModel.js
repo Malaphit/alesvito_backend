@@ -22,6 +22,24 @@ const productModel = {
     return result.rows;
   },
   
+  async getProducts(categoryId, search) {
+    let query = 'SELECT * FROM products WHERE 1=1';
+    const values = [];
+
+    if (categoryId) {
+      query += ' AND category_id = $1';
+      values.push(categoryId);
+    }
+
+    if (search) {
+      query += ` AND (name ILIKE $${values.length + 1} OR description ILIKE $${values.length + 1})`;
+      values.push(`%${search}%`);
+    }
+
+    const result = await pool.query(query, values);
+    return result.rows;
+  },
+
   async getProductById(id) {
     const query = `
       SELECT p.*, c.name as category_name 

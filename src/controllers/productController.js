@@ -4,10 +4,11 @@ const { Workbook } = require('exceljs');
 const productController = {
   async getProducts(req, res) {
     try {
-      const products = await productModel.getAllProducts();
+      const { categoryId, search } = req.query;
+      const products = await productModel.getProducts(categoryId, search);
       res.json(products);
     } catch (error) {
-      res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+      res.status(500).json({ message: 'Ошибка сервера' });
     }
   },
   
