@@ -7,6 +7,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const sizeRoutes = require('./routes/sizeRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const addressRoutes = require('./routes/addressesRoutes');
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/sizes', sizeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/addresses', addressRoutes);
 
 app.get('/', (req, res) => {
   res.send('Добро пожаловать в AlessandroVitorio API!');

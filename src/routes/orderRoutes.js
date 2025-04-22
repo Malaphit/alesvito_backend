@@ -4,7 +4,7 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', authMiddleware(['admin']), orderController.getOrders);
+router.get('/', authMiddleware(), orderController.getOrders);
 router.post('/', authMiddleware(), orderController.createOrder);
 router.put('/:orderId/status', authMiddleware(['admin']), orderController.updateOrderStatus);
 

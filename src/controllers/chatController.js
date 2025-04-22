@@ -6,14 +6,12 @@ const chatController = {
     try {
       const userId = req.user.id;
       const isAdmin = req.user.role === 'admin';
-      const { userId: targetUserId } = req.query; // Для админа: фильтр по пользователю
+      const { userId: targetUserId } = req.query;
 
       let messages;
       if (isAdmin && targetUserId) {
-        // Админ запрашивает сообщения конкретного пользователя
         messages = await chatModel.getMessagesByUser(userId, targetUserId);
       } else {
-        // Обычный запрос: все сообщения для админа, свои для пользователя
         messages = await chatModel.getMessages(userId, isAdmin);
       }
 
@@ -41,13 +39,18 @@ const chatController = {
   async sendMessage(req, res) {
     try {
       const userId = req.user.id;
-      const { message } = req.body;
+      const isAdmin = req.user.role === 'admin';
+      const { message, targetUserId } = req.body;
 
       if (!message || !message.trim()) {
         return res.status(400).json({ message: 'Сообщение не может быть пустым' });
       }
 
-      const newMessage = await chatModel.createMessage(userId, message);
+      if (isAdmin && !targetUserId) {
+        return res.status(400).json({ message: 'Не указан ID пользователя' });
+      }
+
+      const newMessage = await chatModel.createMessage(userId, message, isAdmin, targetUserId);
 
       // Заглушка для AmoCRM
       // await axios.post('https://yourdomain.amocrm.ru/api/v4/leads', {

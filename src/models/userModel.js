@@ -83,6 +83,17 @@ const userModel = {
     return result.rows[0];
   },
 
+  async updateUser(userId, { firstName, lastName, phone }) {
+    const query = `
+      UPDATE users
+      SET first_name = $1, last_name = $2, phone = $3
+      WHERE id = $4
+      RETURNING id, email, first_name, last_name, phone, referral_code, bonus_points
+    `;
+    const result = await pool.query(query, [firstName, lastName, phone, userId]);
+    return result.rows[0];
+  },
+
   async getUserProfile(userId) {
     const query = `
       SELECT id, email, first_name, last_name, phone, referral_code, bonus_points
